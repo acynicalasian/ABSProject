@@ -151,10 +151,14 @@ namespace TmoTask.Controllers
             for (int i = 0; i < sortedvalues.Length; i++)
                 sellersranked[i] = reverseddict[sortedvalues[i]];
             int n = numSellers;
+
+            // Unfortunately I have to convert the decimal values to strings because Ok() strips
+            // zeroes in the hundredth place value and I have no clue how to change that.
+            List<string> sortedstr = sortedvalues.Select(x => $"{x}").ToList<string>();
             var objtojson = new
             {
                 ranking = (n >= sortedvalues.Length) ? sellersranked : sellersranked[0..n],
-                sellertotal = (n >= sortedvalues.Length) ? sortedvalues : sortedvalues[0..n]
+                sellertotal = (n >= sortedvalues.Length) ? sortedstr : sortedstr[0..n]
             };
             // Ordering of the arrays lines up, so ranking[i]'s total is sellartotal[i].
             return Ok(objtojson);
