@@ -12,7 +12,12 @@ namespace TmoTask.Controllers
         private string CSV_SRC_PATH;
         public PerformanceReportController() : base()
         {
-            this.CSV_SRC_PATH = "../orders.csv";
+            // I think this has to be relative to Program.cs
+            this.CSV_SRC_PATH = "orders.csv";
+
+
+            // Debug purposes; comment out when done and uncomment the above line.
+            //this.CSV_SRC_PATH = "headernobody.csv";
         }
 
         // Probably a much better way to do this, but I'm just hacking together unit tests with
@@ -22,6 +27,7 @@ namespace TmoTask.Controllers
         //
         // This violates naming conventions but it's not meant to be used outside test cases so it
         // should be fine? I'd assume C# will still let this compile and just output a warning.
+        [NonAction]
         public void _setcsvpath(string s)
         {
             CSV_SRC_PATH = s;
@@ -32,7 +38,7 @@ namespace TmoTask.Controllers
         {
             public required string Seller { get; set; }
             public required string Product { get; set; }
-            public required double Price { get; set; }
+            public required decimal Price { get; set; }
             public required string OrderDate { get; set; }
             public required string Branch { get; set; }
         }
@@ -117,7 +123,7 @@ namespace TmoTask.Controllers
             if (numSellers < 1) return BadRequest("Number of sellers cannot be less than 1.");
 
             // Accumulate totals for each seller.
-            var sellerTotals = new Dictionary<string, double>();
+            var sellerTotals = new Dictionary<string, decimal>();
             foreach(var line in this._processeddata)
             {
                 if (line.Branch == branchname)
@@ -133,12 +139,12 @@ namespace TmoTask.Controllers
             // new dict to an array, and then sort it high to low. We can now use the values of
             // the sorted array to quickly access key-value pairs in the reversed dict to get an
             // array of the sellars ordered from high to low sales.
-            var reverseddict = new Dictionary<double, string>();
+            var reverseddict = new Dictionary<decimal, string>();
             foreach(var key in sellerTotals.Keys)
             {
                 reverseddict.Add(sellerTotals[key], key);
             }
-            double[] sortedvalues = new double[reverseddict.Count];
+            decimal[] sortedvalues = new decimal[reverseddict.Count];
             reverseddict.Keys.CopyTo(sortedvalues, 0);
             Array.Sort(sortedvalues, (a,b) => Math.Sign(b-a));
             string[] sellersranked = new string[sortedvalues.Length];
@@ -193,13 +199,12 @@ namespace TmoTask.Controllers
             {
                 var parsed = csv.GetRecords<CsvHeaders>();
                 // Regex to check if values in the Price field are valid.
-                // Allow whole dollars to implicitly be zero (i.e. the pattern matches "0.99" and
-                // ".16") but there must be 1+ decimal places, corresponding to cents (i.e. the
-                // pattern matches "22162.33" and ".2" but not "0.113").
-                string pricepattern = @"^\d*\.\d{1,2}$";
+                // Prices must be of format {explicitwhole#}.{explicitfractional#} where zeros
+                // must be included (i.e. 1.00, 0.11, 0.00).
+                string pricepattern = @"^\d+\.\d{2}$";
                 // Regex to check if values in the OrderDate field are valid. OrderDates must be in
                 // format YYYY-MM-DD.
-                string datepattern = @"\d{4}-\d\d-\d\d";
+                string datepattern = @"^\d{4}-\d\d-\d\d$";
                 Regex priceregex = new Regex(pricepattern);
                 Regex dateregex = new Regex(datepattern);
 
@@ -245,17 +250,14 @@ namespace TmoTask.Controllers
                             else ddbound = 28;
                             if (dd > ddbound) throw new InvalidDataException(
                                 $"Invalid OrderDate value '{line.OrderDate}' in line: {linetext}");
-                            else break;
-                        case 1:
-                        case 3:
-                        case 5:
-                        case 7:
-                        case 8:
-                        case 10:
-                        case 12:
-                            if (dd > 31) throw new InvalidDataException(
+                            break;
+                        case 4:
+                        case 6:
+                        case 9:
+                        case 11:
+                            if (dd > 30) throw new InvalidDataException(
                                 $"Invalid OrderDate value '{line.OrderDate}' in line: {linetext}");
-                            else break;
+                            break;
                         default:
                             if (dd > 31) throw new InvalidDataException(
                                 $"Invalid OrderDate value '{line.OrderDate}' in line: {linetext}");

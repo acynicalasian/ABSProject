@@ -116,19 +116,27 @@ namespace TmoTask.Controllers.Tests
             Assert.ThrowsException<InvalidDataException>(() => c.GetBranches());
         }
 
-        //[TestMethod()]
-        //public void CSVDataPriceTooFewDecimals()
-        //{
-        //    var c = new PerformanceReportController();
-        //    c._setcsvpath($"{CSVFOLDER}/baddata2.csv");
-        //    Assert.ThrowsException<InvalidDataException>(() => c.GetBranches());
-        //}
+        [TestMethod()]
+        public void CSVDataPriceTooFewDecimals()
+        {
+            var c = new PerformanceReportController();
+            c._setcsvpath($"{CSVFOLDER}/baddata2.csv");
+            Assert.ThrowsException<InvalidDataException>(() => c.GetBranches());
+        }
 
         [TestMethod()]
         public void CSVDataPriceTooManyDecimals()
         {
             var c = new PerformanceReportController();
             c._setcsvpath($"{CSVFOLDER}/baddata3.csv");
+            Assert.ThrowsException<InvalidDataException>(() => c.GetBranches());
+        }
+
+        // Yikes, I should've made the CSV files with descriptive names! Do it if I have time.
+        public void CSVDataPriceNoLeadingZero()
+        {
+            var c = new PerformanceReportController();
+            c._setcsvpath($"{CSVFOLDER}/baddata17.csv");
             Assert.ThrowsException<InvalidDataException>(() => c.GetBranches());
         }
 
