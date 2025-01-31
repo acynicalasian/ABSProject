@@ -1,0 +1,3 @@
+Seller,Product,Price,OrderDate,Branch
+Seller Foo,Product Bar,123.45,0004-02-29,Branch 4
+Seller Foo,Product Bar,123.45,0400-02-29,Branch 5
