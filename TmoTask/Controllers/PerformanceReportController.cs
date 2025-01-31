@@ -44,7 +44,7 @@ namespace TmoTask.Controllers
 
         // Store the processed CSV's data here to avoid having to use CsvHelper to reread
         // orders.csv, unless a user explicitly states they want to refresh the database.
-        private IEnumerable<CsvHeaders>? _processeddata;
+        private List<CsvHeaders>? _processeddata;
 
         private string[]? _processedbranchlist;
 
@@ -186,7 +186,8 @@ namespace TmoTask.Controllers
 
         private HashSet<string> ProcessCSVAndExtractBranchnames()
         {
-            HashSet<string> branchnames = new HashSet<string>();
+            HashSet<string> branchnames = [];
+            this._processeddata = [];
             using (var reader = new StreamReader(this.CSV_SRC_PATH))
             using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
             {
@@ -261,10 +262,8 @@ namespace TmoTask.Controllers
                             break;
                     }
                     branchnames.Add(line.Branch);
+                    this._processeddata.Add(line);
                 }
-                // We only get to this point if the CSV parsed successfully. Store the processed
-                // data from the CSV as a member object.
-                this._processeddata = parsed;
             }
             return branchnames;
         }

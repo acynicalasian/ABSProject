@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.TypeConversion;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 
 namespace TmoTask.Controllers.Tests
 {
@@ -261,7 +262,7 @@ namespace TmoTask.Controllers.Tests
             var c = new PerformanceReportController();
             c._setcsvpath($"{CSVFOLDER}/../orders.csv");
             var res = c.GetTopSellers("foo", 1000, false);
-            Assert.Equals(typeof(NotFound), res.GetType());
+            Assert.AreEqual(typeof(NotFoundObjectResult), res.GetType());
         }
 
         [TestMethod()]
@@ -270,9 +271,9 @@ namespace TmoTask.Controllers.Tests
             var c = new PerformanceReportController();
             c._setcsvpath($"{CSVFOLDER}/../orders.csv");
             var res = c.GetTopSellers("Branch 3", 0);
-            Assert.Equals(typeof(BadRequest), res.GetType());
+            Assert.AreEqual(typeof(BadRequestObjectResult), res.GetType());
             res = c.GetTopSellers("Branch 1", -3);
-            Assert.Equals(typeof(BadRequest), res.GetType());
+            Assert.AreEqual(typeof(BadRequestObjectResult), res.GetType());
         }
     }
 }
