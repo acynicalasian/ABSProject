@@ -1,0 +1,7 @@
+.plasmic_default_styles {
+  --mixin-SnTY4S5hPhfm_white-space: pre-wrap;
+}
+
+:where(.root_reset_7nJ7UcFmq9UzB6eXfC5z4a) {
+  white-space: var(--mixin-SnTY4S5hPhfm_white-space);
+}

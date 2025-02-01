@@ -1,25 +1,29 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import SideBar from './components/SideBar';
+import { CssVarsProvider, Divider, Stack, Sheet } from '@mui/joy';
+
+// I think I have to comment this part out when I'm done debugging.
+// import { PlasmicCanvasHost, registerComponent } from '@plasmicapp/react-web/lib/host';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <CssVarsProvider>
+      <Sheet>
+        <Stack
+          direction="row"
+          divider={<Divider orientation='vertical'/>}
+          spacing={0}
+          sx={{
+            justifyContent: "flex-start",
+            alignItems: "stretch",
+          }}
         >
-          Learn React
-        </a>
-      </header>
-    </div>
+          <SideBar/>
+          Lorem ipsum.
+        </Stack>
+      </Sheet>
+    </CssVarsProvider>
   );
 }
 

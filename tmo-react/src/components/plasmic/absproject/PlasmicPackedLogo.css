@@ -1,0 +1,35 @@
+.PackedLogo__logoText__zBt7Q {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  position: relative;
+  min-width: 0;
+  padding: 8px;
+}
+.PackedLogo__img__uCuOf {
+  object-fit: contain;
+  max-width: 100%;
+  width: 25%;
+}
+.PackedLogo__img__uCuOf > picture > img {
+  object-fit: contain;
+}
+.PackedLogo__text__scrRg {
+  position: relative;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  font-size: 22px;
+  text-align: left;
+  left: auto;
+  top: auto;
+  z-index: 1;
+  bottom: auto;
+  right: auto;
+  align-self: center;
+  padding: 8px;
+}
