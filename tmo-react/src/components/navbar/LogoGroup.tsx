@@ -14,14 +14,14 @@ export default function LogoGroup() {
                 alignItems: "center",
             }}
             css={css`
-                    width: stretch;
+                    width: auto;
                     height: 10%;
                     padding: 8px;
                 `}
         >
-            <img src={logo} css={css`width:125px;`}/>
+            <img src={logo} css={css`width:80px;`}/>
             <div css={css`width:auto; padding: 8px;`}>
-                <Typography css={css`font-size: 1.5em; margin-left:8px`}>Placeholder Inc.</Typography>
+                <Typography css={css`font-size: 1.25em; margin-left:8px`}>Placeholder Inc.</Typography>
             </div>
         </Stack>
     );

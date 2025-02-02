@@ -55,6 +55,7 @@ namespace TmoTask.Controllers
         private string[]? _processedbranchlist;
 
         [HttpGet]
+        [Produces("application/json")]
         public OkObjectResult GetBranches()
         {
             /**************************************************************************************
@@ -85,6 +86,7 @@ namespace TmoTask.Controllers
         }
 
         [HttpGet]
+        [Produces("application/json")]
         [Route("{branchname}/{numSellers}/{refresh=false}")]
         public IActionResult GetTopSellers(string branchname, int numSellers, bool refresh=false)
         {

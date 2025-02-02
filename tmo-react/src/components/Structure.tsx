@@ -2,6 +2,7 @@
 import React from 'react';
 import { Divider, Stack } from '@mui/joy';
 import Navbar from './navbar/Navbar';
+import DataViewer from './dataviewer/DataViewer';
 import { css } from '@emotion/react';
 
 export default function Structure() {
@@ -20,7 +21,7 @@ export default function Structure() {
             `}
         >
             <Navbar/>
-            <div css={css` background-color: black; width: 87.5%`}/>
+            <DataViewer/>
         </Stack>
     );
 }

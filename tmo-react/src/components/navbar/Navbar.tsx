@@ -1,9 +1,10 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react';
-import { Stack, Button, Typography, ListItemContent } from '@mui/joy';
-import {List, ListItem, ListItemButton } from '@mui/joy';
+import { Stack } from '@mui/joy';
+import { List, ListItem, ListItemButton, ListItemContent } from '@mui/joy';
 import { css } from '@emotion/react';
 import LogoGroup from './LogoGroup';
+import LoginMockup from "./LoginMockup";
 
 function ButtonList() {
     return (
@@ -48,13 +49,15 @@ export default function Navbar() {
                 alignItems: "flex-start",
             }}
             css={css`
-                    width: 12.5%;
+                    min-width: 300px;
+                    width: 300px;
                     height: stretch;
                     padding: 8px;
                 `}
         >
             <LogoGroup/>
-            <ButtonList />
+            <ButtonList/>
+            <LoginMockup/>
         </Stack>
     );
 }
