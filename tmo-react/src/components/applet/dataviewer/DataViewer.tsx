@@ -34,11 +34,11 @@ export default function DataViewer() {
     // a query was made with. We want to store this value between potential rerenders (i.e. we
     // refresh branchlist or top seller information manually, but numSellers stayed the same). We
     // also want to synchronize between the form and the view window anyway.
-    const [lastNumSellers, setLastNumSellers] = useState(1);
+    const [numSellers, setNumSellers] = useState(1);
 
     // Handler function for form elements that need to record the last number used if it was good.
-    const lastNumSetter = (i: number) => {
-        setLastNumSellers(i);
+    const numSetter = (i: number) => {
+        setNumSellers(i);
     };
 
     // This forces all child nodes to be rerendered, but we need this parent component to control
@@ -77,7 +77,7 @@ export default function DataViewer() {
                 apiStatus={apiStatus}
                 apiSetter={apiStatusSetter}
                 branchlist={branchList}
-                lastNumSetter={lastNumSetter}
+                numSetter={numSetter}
             />
             {/*<WindowedViewer/>*/}
             <></>

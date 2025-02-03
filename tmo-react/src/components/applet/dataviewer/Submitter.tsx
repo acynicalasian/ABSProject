@@ -1,104 +1,72 @@
 /** @jsxImportSource @emotion/react */
 import CheckBoxRoundedIcon from '@mui/icons-material/CheckBoxRounded';
 import CheckBoxOutlineBlankRoundedIcon from '@mui/icons-material/CheckBoxOutlineBlankRounded';
-import { ButtonGroup, Button, List, Checkbox } from '@mui/joy';
+import { ButtonGroup, Button, List, Checkbox, FormControl, FormLabel } from '@mui/joy';
 import { API_LOADING, API_IDLING } from './DataViewer';
 import { useState } from 'react';
+import { css } from '@emotion/react';
 
 const CHECKBOXBLANK = <CheckBoxOutlineBlankRoundedIcon/>;
 const CHECKBOXFILLED = <CheckBoxRoundedIcon/>;
 
-function CheckboxContainer(props: {checked: boolean})
-{
-    return (
-        <Checkbox
-            // These props might need to be commented out after testing.
-            color="primary"
-            variant="solid"
-
-            checked={props.checked}
-            checkedIcon={CHECKBOXFILLED}
-            uncheckedIcon={CHECKBOXBLANK}
-            label="Refresh?"
-            
-        >
-
-        </Checkbox>
-    );
-}
-
-function SubmitterTest(
-    props:
-    {
-        fetchStatus: number,
-        fetchSetter: any,
-        sendValue: string,
-        errStatus: boolean,
-        errSetter: (state: boolean) => void
-    })
-{
-    const [checked, setChecked] = useState(false);
-    let checkbox = (checked) ? CHECKBOXFILLED : CHECKBOXBLANK;
-    if (props.fetchStatus === API_LOADING) {
-        return (
-            <ButtonGroup
-                color="primary"
-                disabled={true}
-                variant="solid"
-            >
-                <Button>Query</Button>
-                <Button startDecorator={CHECKBOXBLANK}>Refresh?</Button>
-            </ButtonGroup>
-        );
-    }
-    else {
-        return (
-            <ButtonGroup
-                color="primary"
-                disabled={false}
-                variant="solid"
-            >
-                <Button>Query</Button>
-                <Button component={Checkbox} startDecorator={checkbox}>Refresh?</Button>
-            </ButtonGroup>
-        );
-    }
-}
-
 export default function Submitter(
     props:
     {
-        fetchStatus: number,
-        fetchSetter: any,
-        sendValue: string,
-        errStatus: boolean,
-        errSetter: (state: boolean) => void
+        apiStatus: number,
+        apiSetter: any,
+        errSetter: (state: number) => void
     })
 {
     const [checked, setChecked] = useState(false);
+    const handleClick = () => {
+        setChecked(b => !b);
+    };
     let checkbox = (checked) ? CHECKBOXFILLED : CHECKBOXBLANK;
-    if (props.fetchStatus === API_LOADING) {
+    if (props.apiStatus === API_LOADING) {
         return (
-            <ButtonGroup
-                color="primary"
-                disabled={true}
-                variant="solid"
-            >
-                <Button>Query</Button>
-                <Button startDecorator={CHECKBOXBLANK}>Refresh?</Button>
-            </ButtonGroup>
+            <FormControl>
+                <ButtonGroup
+                    color="primary"
+                    disabled={true}
+                    variant="solid"
+                    css={css`
+                            width: 200px;
+                        `}
+                >
+                    <Button>Query</Button>
+                    <Button
+                        startDecorator={CHECKBOXBLANK}
+                        sx={{ width: 200 }}
+                    >
+                        Refresh?
+                    </Button>
+                </ButtonGroup>
+                <FormLabel/>
+            </FormControl>
         );
     }
     else {
         return (
-            <ButtonGroup
-                color="primary"
-                disabled={false}
-                variant="solid"
-            >
-                <Button>Query</Button>
-                <Button component={Checkbox} startDecorator={checkbox}>Refresh?</Button>
-            </ButtonGroup>
+            <FormControl>
+                <ButtonGroup
+                    color="primary"
+                    disabled={false}
+                    variant="solid"
+                    css={css`
+                            width: 200px;
+                        `}
+                >
+                    <Button type="submit">Query</Button>
+                    <Button
+                        startDecorator={checkbox}
+                        onClick={handleClick}
+                        sx={{ width: 200 }}
+                    >
+                        Refresh?
+                    </Button>
+                </ButtonGroup>
+                <FormLabel/>
+            </FormControl>
         );
     }
 }
