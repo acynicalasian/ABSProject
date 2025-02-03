@@ -9,6 +9,8 @@ export default function NumField(
         apiStatus: number,      // We want to know whether our API is still loading branchnames.
         errState: number,
         errSetter: (n: number) => void,
+        // We need to clear error state when we modify the input field.
+        changeFn: () => void,
     })
 {
     let errcheck = (props.errState === ERRSTATE_BADVAL || props.errState === ERRSTATE_EMPTYVAL);
@@ -36,6 +38,7 @@ export default function NumField(
             <Input
                 placeholder={placeholdertxt}
                 name="numInput"
+                onChange={props.changeFn}
             />
             <FormHelperText>{errtxt}</FormHelperText>
         </FormControl>

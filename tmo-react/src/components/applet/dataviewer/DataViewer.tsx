@@ -2,6 +2,7 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
 import Form from './Form';
+import DisplayData from './displaydata/DisplayData';
 
 export const API_LOADING = 0;
 export const API_IDLING = 1;
@@ -73,6 +74,8 @@ export default function DataViewer() {
                     // the API doesn't return as expected, but that's fine in our prototype for
                     // now.
                     throw new TypeError("Pretty positive GetBranches() always returns JSON.");
+                // Again, this borks the program but that's fine for our prototype.
+                if (!res.ok) throw new Error("Our backend failed!!")
                 const obj = await res.json();
                 if (!ignore)
                 {

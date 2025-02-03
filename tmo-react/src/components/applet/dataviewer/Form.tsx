@@ -11,6 +11,8 @@ import NumField from './NumField';
 export const ERRSTATE_OK = 0;
 export const ERRSTATE_BADVAL = 1;
 export const ERRSTATE_EMPTYVAL = 2;
+// We need this to handle trying to submit on load (numSellers is initialized to 1)
+export const ERRSTATE_EMPTYONLOAD = 3;
 
 export default function Form(
     // Changing the API state will lead to a rerender in the parent component, which leads to a
@@ -31,7 +33,7 @@ export default function Form(
     const errSetterBranch = (n: number) => {
         setErrStateBranch(n);
     };
-    const [errStateNum, setErrStateNum] = useState(ERRSTATE_OK);
+    const [errStateNum, setErrStateNum] = useState(ERRSTATE_EMPTYONLOAD);
     const errSetterNum = (n: number) => {
         setErrStateNum(n);
     };
@@ -41,6 +43,14 @@ export default function Form(
     const [checked, setChecked] = useState(false);
     const checkSetter = (b: boolean) => {
         setChecked(b);
+    };
+
+    // Clear error state if we modify an input field.
+    const handleChangeBranch = () => {
+        setErrStateBranch(ERRSTATE_OK);
+    };
+    const handleChangeNum = () => {
+        setErrStateNum(ERRSTATE_OK);
     };
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -55,6 +65,8 @@ export default function Form(
         const numStr = target.numInput.value;
         const parsedNumStr = Number.parseInt(numStr);
 
+        // This error checking might become redunant after I tweak the number field, but more error
+        // checking can't hurt us...
         let exitEarly = false;
         // If branchStr is empty or numStr is non-integral and/or less than 1, we can stop early.
         if (branchStr == "") { // Not sure if JS does some implicit comparison bs with "" and null
@@ -62,11 +74,14 @@ export default function Form(
             exitEarly = true;
         }
         // numStr can't be both negative or a bad value.
-        if (numStr == "") {
+        if (numStr == "" || errStateNum === ERRSTATE_EMPTYONLOAD) {
             setErrStateNum(ERRSTATE_EMPTYVAL);
+            exitEarly = true;
         }
         else {
-            if (Number.isNaN(parsedNumStr) || !Number.isInteger(parsedNumStr)) {
+            // If there's anything else but numeric values in the field
+            if (!(/^\d+$/).test(numStr))
+            {
                 setErrStateNum(ERRSTATE_BADVAL);
                 exitEarly = true;
             }
@@ -89,6 +104,7 @@ export default function Form(
                 updatedBranchList = obj["list"];
                 props.branchSetter(obj["list"]);
                 props.apiSetter(API_IDLING);
+                setChecked(b => !b);
             };
         }
 
@@ -113,10 +129,11 @@ export default function Form(
             if (!contentType || !contentType.includes("application/json"))
                 // Again, we'll bork the program but that's fine for now.
                 throw new TypeError("uh-oh!")
+            // More temporary bork.
+            if (!res.ok) throw new Error("Our backend failed!");
             const obj = await res.json();
             props.sellerDataSetter(obj);
             props.apiSetter(API_IDLING);
-            window.localStorage.testItem = obj;
         };
         fetchSellerData();
     };
@@ -127,7 +144,7 @@ export default function Form(
                 spacing={2}
                 sx={{
                     justifyContent: "flex-end",
-                    alignItems: "flex-end",
+                    alignItems: "flex-start",
                 }}
                 css={css`
                         margin-top: 24px;
@@ -139,16 +156,19 @@ export default function Form(
                     branchlist={props.branchlist}
                     errState={errStateBranch}
                     errSetter={errSetterBranch}
+                    changeFn={handleChangeBranch}
                 />
                 <NumField
                     apiStatus={props.apiStatus}
                     errState={errStateNum}
                     errSetter={errSetterNum}
+                    changeFn={handleChangeNum}
                 />
                 <Submitter
                     apiStatus={props.apiStatus}
                     checked={checked}
                     checkSetter={checkSetter}
+                    errState={errStateNum}
                 />
             </Stack>
         </form>

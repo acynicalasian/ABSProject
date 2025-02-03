@@ -11,6 +11,8 @@ export default function DropdownMenu(
         errState: number,
         // We need this if we type after getting an error that we tried to submit an empty form.
         errSetter: (n: number) => void,
+        // We need this to clear error state from autocorrect when we type again.
+        changeFn: () => void,
     })
 {
     let errcheck = (props.errState === ERRSTATE_BADVAL || props.errState === ERRSTATE_EMPTYVAL);
@@ -41,6 +43,7 @@ export default function DropdownMenu(
                 options={props.branchlist}
                 placeholder={placeholdertxt}
                 type="search"
+                onChange={props.changeFn}
             />
             <FormHelperText>{errtxt}</FormHelperText>
         </FormControl>
