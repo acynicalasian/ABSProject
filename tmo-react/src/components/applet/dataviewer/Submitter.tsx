@@ -12,9 +12,9 @@ const CHECKBOXFILLED = <CheckBoxRoundedIcon/>;
 export default function Submitter(
     props:
     {
+        // We control the query through handling the submission. We don't need to pass any handlers
+        // or props here.
         apiStatus: number,
-        apiSetter: any,
-        errSetter: (state: number) => void
     })
 {
     const [checked, setChecked] = useState(false);
@@ -24,19 +24,16 @@ export default function Submitter(
     let checkbox = (checked) ? CHECKBOXFILLED : CHECKBOXBLANK;
     if (props.apiStatus === API_LOADING) {
         return (
-            <FormControl>
+            <FormControl sx={{ width: 1/4 }}>
                 <ButtonGroup
                     color="primary"
                     disabled={true}
                     variant="solid"
-                    css={css`
-                            width: 200px;
-                        `}
                 >
-                    <Button>Query</Button>
+                    <Button sx={{ width: 3/8 }}>Query</Button>
                     <Button
                         startDecorator={CHECKBOXBLANK}
-                        sx={{ width: 200 }}
+                        sx={{ width: 5/8 }}
                     >
                         Refresh?
                     </Button>
@@ -47,20 +44,17 @@ export default function Submitter(
     }
     else {
         return (
-            <FormControl>
+            <FormControl sx={{ width: 1/4 }}>
                 <ButtonGroup
                     color="primary"
                     disabled={false}
                     variant="solid"
-                    css={css`
-                            width: 200px;
-                        `}
                 >
-                    <Button type="submit">Query</Button>
+                    <Button type="submit" sx={{ width: 3/8 }}>Query</Button>
                     <Button
                         startDecorator={checkbox}
                         onClick={handleClick}
-                        sx={{ width: 200 }}
+                        sx={{ width: 5/8 }}
                     >
                         Refresh?
                     </Button>

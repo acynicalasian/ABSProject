@@ -6,10 +6,17 @@ import Form from './Form';
 export const API_LOADING = 0;
 export const API_IDLING = 1;
 
+const EMPTYSTRINGARR: string[] = [];
+let MONTHLYTEMPLATE = { ranking: EMPTYSTRINGARR, sellertotal: EMPTYSTRINGARR };
+export const TEMPLATE_SELLERDATA = {
+    Jan: MONTHLYTEMPLATE, Feb: MONTHLYTEMPLATE, Mar: MONTHLYTEMPLATE, Apr: MONTHLYTEMPLATE,
+    May: MONTHLYTEMPLATE, Jun: MONTHLYTEMPLATE, Jul: MONTHLYTEMPLATE, Aug: MONTHLYTEMPLATE,
+    Sep: MONTHLYTEMPLATE, Oct: MONTHLYTEMPLATE, Nov: MONTHLYTEMPLATE, Dec: MONTHLYTEMPLATE,
+};
+
 // This probably needs to be changed depending on dev environment, actual deployment, etc.
 const API_URL_PREFIX = "http://localhost:5139/PerformanceReport";
 const API_URL_GETBRANCHES = "/PerformanceReport/GetBranches";
-
 
 export default function DataViewer() {
     // Manage apiStatus state here because we need to rerender pretty much all our child
@@ -23,22 +30,26 @@ export default function DataViewer() {
     }
     
     // Both the submission form and the window need to know the current list of branches; keep that
-    // syncrhonized here, and use state. This also makes sense since I suspect that rerenders might
+    // synchronized here, and use state. This also makes sense since I suspect that rerenders might
     // occur when our form catches errors, and that doesn't necessarily need to trigger a reread of
     // the entire database; we'll lose this list if we rerender this component, so use state.
-    let emptystringarr: string[];
-    emptystringarr = [];
-    const [branchList, setBranchList] = useState(emptystringarr);
+    const [branchList, setBranchList] = useState(EMPTYSTRINGARR);
+    const branchSetter = (arr: string[]) => {
+        setBranchList(arr);
+    }
 
-    // This could be a bad UX decision, but allow users to resubmit a query using the last value
-    // a query was made with. We want to store this value between potential rerenders (i.e. we
-    // refresh branchlist or top seller information manually, but numSellers stayed the same). We
-    // also want to synchronize between the form and the view window anyway.
+    // Both the viewing window and the form submission button need to know the number of sellers to
+    // request. Keep this value synchronized.
     const [numSellers, setNumSellers] = useState(1);
-
-    // Handler function for form elements that need to record the last number used if it was good.
     const numSetter = (i: number) => {
         setNumSellers(i);
+    };
+
+    // We need to synchronize the list of top sellers because we use the submit button to query the
+    // database as needed.
+    const [sellerData, setSellerData] = useState(TEMPLATE_SELLERDATA);
+    const sellerDataSetter = (obj: typeof TEMPLATE_SELLERDATA) => {
+        setSellerData(obj);
     };
 
     // This forces all child nodes to be rerendered, but we need this parent component to control
@@ -77,7 +88,9 @@ export default function DataViewer() {
                 apiStatus={apiStatus}
                 apiSetter={apiStatusSetter}
                 branchlist={branchList}
+                branchSetter={branchSetter}
                 numSetter={numSetter}
+                sellerDataSetter={sellerDataSetter}
             />
             {/*<WindowedViewer/>*/}
             <></>
