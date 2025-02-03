@@ -2,7 +2,7 @@
 import CheckBoxRoundedIcon from '@mui/icons-material/CheckBoxRounded';
 import CheckBoxOutlineBlankRoundedIcon from '@mui/icons-material/CheckBoxOutlineBlankRounded';
 import { ButtonGroup, Button, List, Checkbox } from '@mui/joy';
-import { API_LOADING, API_IDLING } from './QuerySelector';
+import { API_LOADING, API_IDLING } from './DataViewer';
 import { useState } from 'react';
 
 const CHECKBOXBLANK = <CheckBoxOutlineBlankRoundedIcon/>;
@@ -14,11 +14,13 @@ function CheckboxContainer(props: {checked: boolean})
         <Checkbox
             // These props might need to be commented out after testing.
             color="primary"
+            variant="solid"
 
             checked={props.checked}
             checkedIcon={CHECKBOXFILLED}
             uncheckedIcon={CHECKBOXBLANK}
-
+            label="Refresh?"
+            
         >
 
         </Checkbox>

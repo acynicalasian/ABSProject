@@ -3,7 +3,7 @@ import React from 'react';
 import { css } from "@emotion/react";
 import { Breadcrumbs, Link, Stack } from "@mui/joy";
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
-import QuerySelector from './QuerySelector';
+import DataViewer from './dataviewer/DataViewer';
 
 function PathLink(props: {str: string, icon: boolean}) {
     return (
@@ -34,7 +34,7 @@ function Path() {
     );
 }
 
-export default function DataViewer() {
+export default function Applet() {
     return (
         // This stack should help center our "viewport" vertically.
         <Stack
@@ -55,7 +55,7 @@ export default function DataViewer() {
                 `}
         >
             <Path/>
-            <QuerySelector/>
+            <DataViewer/>
         </Stack>
     );
 }

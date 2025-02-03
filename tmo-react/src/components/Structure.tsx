@@ -2,7 +2,7 @@
 import React from 'react';
 import { Divider, Stack } from '@mui/joy';
 import Navbar from './navbar/Navbar';
-import DataViewer from './dataviewer/DataViewer';
+import DataViewer from './applet/Applet';
 import { css } from '@emotion/react';
 
 export default function Structure() {
