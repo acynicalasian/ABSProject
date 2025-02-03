@@ -9,10 +9,11 @@ using CsvHelper;
 using CsvHelper.TypeConversion;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Converted = TmoTask.Controllers.PerformanceReportController._CsvHeaders;
 
 namespace TmoTask.Controllers.Tests
 {
-    [TestClass()]
+	[TestClass()]
     public class PerformanceReportControllerTests
     {
         // Not sure if this solution works across platforms but it feels better than hardcoding a
@@ -41,6 +42,25 @@ namespace TmoTask.Controllers.Tests
                 Assert.Fail();
             }
         }
+
+        [TestMethod()]
+        public void ConfirmBranch2DecSellerDOnly()
+        {
+            var c = new PerformanceReportController();
+            c._setcsvpath($"{CSVFOLDER}/../orders.csv");
+            c.GetBranches();
+            List<Converted> serializedData = c._getDataDirectly();
+            List<Converted> data = new List<Converted>();
+            foreach (var e in data)
+            {
+                string[] splitdate = e.OrderDate.Split('-');
+                int mm = int.Parse(splitdate[1]);
+                if (mm == 12)
+                {
+                    if (e.Seller != "Seller D") Assert.Fail();
+                }
+            }
+		}
 
         // This method shouldn't throw an exception if our logic in GetTopSellers() worked. The
         // logic should force GetBranches() to run if we haven't processed the CSV data yet.

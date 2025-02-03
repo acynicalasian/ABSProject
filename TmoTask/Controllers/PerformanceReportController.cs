@@ -14,25 +14,50 @@ namespace TmoTask.Controllers
         {
             // I think this has to be relative to Program.cs
             this.CSV_SRC_PATH = "orders.csv";
-
-
-            // Debug purposes; comment out when done and uncomment the above line.
-            //this.CSV_SRC_PATH = "headernobody.csv";
         }
 
-        // Probably a much better way to do this, but I'm just hacking together unit tests with
-        // MSTestv2, and I have no clue what kind of mess I'll create if the automatically
-        // generated PerformanceReportControllerTests class inherits from this class; otherwise
-        // I'd just make CSV_SRC_PATH protected or something.
-        //
-        // This violates naming conventions but it's not meant to be used outside test cases so it
-        // should be fine? I'd assume C# will still let this compile and just output a warning.
+#if DEBUG
+/******************* BEGIN DEBUG-ONLY CODE *******************************************************/
+        // Debug-only function for unit-testing purposes. We don't want to expose this
+        // functionality to any other libraries in a "prod" environment.
         [NonAction]
         public void _setcsvpath(string s)
         {
             CSV_SRC_PATH = s;
             return;
         }
+
+        // We don't want to allow people to grab data directly either. Debug-only.
+        public class _CsvHeaders
+        {
+            public string Seller { get; set; }
+            public string Product { get; set; }
+            public decimal Price { get; set; }
+            public string OrderDate { get; set; }
+            public string Branch { get; set; }
+
+            public _CsvHeaders(string a, string b, decimal c, string d, string e)
+            {
+                this.Seller = a;
+                this.Product = b;
+                this.Price = c;
+                this.OrderDate = d;
+                this.Branch = e;
+            }
+        }
+        [NonAction]
+        public List<_CsvHeaders> _getDataDirectly()
+        {
+            if (this._processeddata == null) throw new Exception("shouldn't be used like this");
+            List<_CsvHeaders> output = new List<_CsvHeaders>();
+            foreach (var e in this._processeddata)
+            {
+                output.Add(new _CsvHeaders(e.Seller, e.Product, e.Price, e.OrderDate, e.Branch));
+            }
+			return output;
+        }
+/********************** END DEBUG-ONLY CODE ******************************************************/
+#endif
 
         private class CsvHeaders
         {
@@ -54,7 +79,7 @@ namespace TmoTask.Controllers
 
         private string[]? _processedbranchlist;
 
-        [HttpGet]
+		[HttpGet]
         [Produces("application/json")]
         public OkObjectResult GetBranches()
         {
@@ -125,45 +150,63 @@ namespace TmoTask.Controllers
             if (numSellers < 1) return BadRequest("Number of sellers cannot be less than 1.");
 
             // Accumulate totals for each seller.
-            var sellerTotals = new Dictionary<string, decimal>();
-            foreach(var line in this._processeddata)
+            var sellerTotalsByMonth = new Dictionary<string, Dictionary<string,decimal>>();
+            List<string> months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+                                   "Oct", "Nov", "Dec"];
+			for (int i = 0; i < 12; i++)
             {
-                if (line.Branch == branchname)
+                var month = months[i];
+                sellerTotalsByMonth[month] = new Dictionary<string, decimal>();
+				foreach (var line in this._processeddata)
                 {
-                    if (sellerTotals.ContainsKey(line.Seller))
-                        sellerTotals[line.Seller] += line.Price;
-                    else
-                        sellerTotals.Add(line.Seller, line.Price);
+                    string[] splitdate = line.OrderDate.Split('-');
+                    int yyyy = int.Parse(splitdate[0]);
+                    int mm = int.Parse(splitdate[1]);
+                    int dd = int.Parse(splitdate[2]);
+                    if (line.Branch == branchname && i + 1 == mm)
+                    {
+                        if (sellerTotalsByMonth[month].ContainsKey(line.Seller))
+                            sellerTotalsByMonth[month][line.Seller] += line.Price;
+                        else
+                            sellerTotalsByMonth[month].Add(line.Seller, line.Price);
+                    }
                 }
             }
 
-            // Swap key and value pairs in our sellerTotals into a new dict. Copy the keys in the
-            // new dict to an array, and then sort it high to low. We can now use the values of
-            // the sorted array to quickly access key-value pairs in the reversed dict to get an
+            // Swap key and value pairs in our sellerTotalsByMonth into a new dict. Copy the keys
+            // in the new dict to an array, and then sort it high to low. We can now use the values
+            // of the sorted array to quickly access key-value pairs in the reversed dict to get an
             // array of the sellars ordered from high to low sales.
-            var reverseddict = new Dictionary<decimal, string>();
-            foreach(var key in sellerTotals.Keys)
+            var reverseDictByMonth = new Dictionary<string, Dictionary<decimal, string>>();
+            var matrixObj = new Dictionary<string, object>();
+            for (int i = 0; i < 12; i++)
             {
-                reverseddict.Add(sellerTotals[key], key);
-            }
-            decimal[] sortedvalues = new decimal[reverseddict.Count];
-            reverseddict.Keys.CopyTo(sortedvalues, 0);
-            Array.Sort(sortedvalues, (a,b) => Math.Sign(b-a));
-            string[] sellersranked = new string[sortedvalues.Length];
-            for (int i = 0; i < sortedvalues.Length; i++)
-                sellersranked[i] = reverseddict[sortedvalues[i]];
-            int n = numSellers;
+                var month = months[i];
+                reverseDictByMonth[month] = new Dictionary<decimal, string>();
+                foreach(var key in sellerTotalsByMonth[month].Keys)
+                {
+                    reverseDictByMonth[month].Add(sellerTotalsByMonth[month][key], key);
+                } 
+                decimal[] sortedSaleTotals = new decimal[reverseDictByMonth[month].Count];
+                reverseDictByMonth[month].Keys.CopyTo(sortedSaleTotals, 0);
+                Array.Sort(sortedSaleTotals, (a,b) => Math.Sign(b-a));
+                string[] sellersranked = new string[sortedSaleTotals.Length];
+                for (int j = 0; j < sortedSaleTotals.Length; j++)
+                    sellersranked[j] = reverseDictByMonth[month][sortedSaleTotals[j]];
+                int n = numSellers;
 
-            // Unfortunately I have to convert the decimal values to strings because Ok() strips
-            // zeroes in the hundredth place value and I have no clue how to change that.
-            List<string> sortedstr = sortedvalues.Select(x => $"{x}").ToList<string>();
-            var objtojson = new
-            {
-                ranking = (n >= sortedvalues.Length) ? sellersranked : sellersranked[0..n],
-                sellertotal = (n >= sortedvalues.Length) ? sortedstr : sortedstr[0..n]
-            };
+                // Unfortunately I have to convert the decimal values to strings because Ok() strips
+                // zeroes in the hundredth place value and I have no clue how to change that.
+                List<string> sortedstr = sortedSaleTotals.Select(x => $"{x}").ToList<string>();
+                var objtojson = new
+                {
+                    ranking = (n >= sortedSaleTotals.Length) ? sellersranked : sellersranked[0..n],
+                    sellertotal = (n >= sortedSaleTotals.Length) ? sortedstr : sortedstr[0..n]
+                };
+                matrixObj[month] = objtojson;
+            }
             // Ordering of the arrays lines up, so ranking[i]'s total is sellartotal[i].
-            return Ok(objtojson);
+            return Ok(matrixObj);
         }
 
         private void ParseCsvHeader()
