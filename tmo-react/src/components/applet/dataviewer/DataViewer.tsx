@@ -5,6 +5,9 @@ import Form from './Form';
 
 export const API_LOADING = 0;
 export const API_IDLING = 1;
+// This value lets us avoid calling the backend API's GetBranches twice when we handle a query
+// submission in our Form while still letting us show the "Loading..." style of our components.
+export const API_REFRESHING = 2;
 
 const EMPTYSTRINGARR: string[] = [];
 let MONTHLYTEMPLATE = { ranking: EMPTYSTRINGARR, sellertotal: EMPTYSTRINGARR };
@@ -16,7 +19,8 @@ export const TEMPLATE_SELLERDATA = {
 
 // This probably needs to be changed depending on dev environment, actual deployment, etc.
 const API_URL_PREFIX = "http://localhost:5139/PerformanceReport";
-const API_URL_GETBRANCHES = "/PerformanceReport/GetBranches";
+export const API_URL_GETBRANCHES = "/PerformanceReport/GetBranches";
+export const API_URL_SELLERDATA_PREFIX = "/PerformanceReport/GetTopSellers/"
 
 export default function DataViewer() {
     // Manage apiStatus state here because we need to rerender pretty much all our child

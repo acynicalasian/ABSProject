@@ -1,12 +1,13 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react';
 import { useState } from 'react';
-import { API_IDLING, API_LOADING } from "./DataViewer";
+import { API_IDLING, API_REFRESHING, API_LOADING } from "./DataViewer";
 import { css } from '@emotion/react';
-import { Stack, Autocomplete, FormControl, FormLabel, FormHelperText, Input } from '@mui/joy';
+import { Stack, FormControl, FormLabel, FormHelperText, Input } from '@mui/joy';
 import Submitter from './Submitter';
-import { TEMPLATE_SELLERDATA } from './DataViewer';
-
+import { TEMPLATE_SELLERDATA, API_URL_SELLERDATA_PREFIX, API_URL_GETBRANCHES } from './DataViewer';
+import DropdownMenu from './DropdownMenu';
+import NumField from './NumField';
 export const ERRSTATE_OK = 0;
 export const ERRSTATE_BADVAL = 1;
 export const ERRSTATE_EMPTYVAL = 2;
@@ -34,10 +35,90 @@ export default function Form(
     const errSetterNum = (n: number) => {
         setErrStateNum(n);
     };
+
+    // Store the state of the checkbox asking whether we want to refresh our query (not read 
+    // cached values. We need to store state here so handleSubmit can tinker with it as needed.
+    const [checked, setChecked] = useState(false);
+    const checkSetter = (b: boolean) => {
+        setChecked(b);
+    };
+
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         // Prevent the page from reloading.
         e.preventDefault();
-        
+        // Validate input from text field.
+        const target = e.target as typeof e.target & {
+            branchInput: { value: string };
+            numInput: { value: string };
+        };
+        const branchStr = target.branchInput.value;
+        const numStr = target.numInput.value;
+        const parsedNumStr = Number.parseInt(numStr);
+
+        let exitEarly = false;
+        // If branchStr is empty or numStr is non-integral and/or less than 1, we can stop early.
+        if (branchStr == "") { // Not sure if JS does some implicit comparison bs with "" and null
+            setErrStateBranch(ERRSTATE_EMPTYVAL);
+            exitEarly = true;
+        }
+        // numStr can't be both negative or a bad value.
+        if (numStr == "") {
+            setErrStateNum(ERRSTATE_EMPTYVAL);
+        }
+        else {
+            if (Number.isNaN(parsedNumStr) || !Number.isInteger(parsedNumStr)) {
+                setErrStateNum(ERRSTATE_BADVAL);
+                exitEarly = true;
+            }
+        }
+        if (exitEarly) return;
+
+        // If we wanted a refresh, we have to fetch the branch list again to make sure the branch
+        // name we're looking for isn't in the most recent data.
+        var updatedBranchList = props.branchlist;
+        if (checked) {
+            const fetchBranches = async function (): Promise<void> {
+                props.apiSetter(API_REFRESHING);
+                const res = await fetch(API_URL_GETBRANCHES, {method: "GET"});
+                const contentType = res.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json"))
+                    // We straight up bork the program if the API doesn't return as expected, but
+                    // for a prototype, it's fine for now.
+                    throw new TypeError("Uh-oh!!");
+                const obj = await res.json();
+                updatedBranchList = obj["list"];
+                props.branchSetter(obj["list"]);
+                props.apiSetter(API_IDLING);
+            };
+        }
+
+        exitEarly = true;
+        for (var i = 0; i < updatedBranchList.length; i++)
+            if (branchStr === updatedBranchList[i]) exitEarly = false;
+        if (exitEarly) {
+            setErrStateBranch(ERRSTATE_BADVAL);
+            return;
+        }
+
+        // If we got this far, now we can finally make the API request.
+        // First, strip whitespace from numStr in a hacky way because JS has way too many implicit
+        // casts... it could cause issues with the backend.
+        let formattedNumStr = Number.parseInt(parsedNumStr.toFixed(0));
+        const fetchSellerData = async function (): Promise<void> {
+
+            let url = `${API_URL_SELLERDATA_PREFIX}/${branchStr}/${formattedNumStr}`;
+            props.apiSetter(API_REFRESHING);
+            const res = await fetch(url, {method: "GET"});
+            const contentType = res.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json"))
+                // Again, we'll bork the program but that's fine for now.
+                throw new TypeError("uh-oh!")
+            const obj = await res.json();
+            props.sellerDataSetter(obj);
+            props.apiSetter(API_IDLING);
+            window.localStorage.testItem = obj;
+        };
+        fetchSellerData();
     };
     return (
         <form onSubmit={handleSubmit} css={css`width: stretch;`}>
@@ -66,89 +147,10 @@ export default function Form(
                 />
                 <Submitter
                     apiStatus={props.apiStatus}
+                    checked={checked}
+                    checkSetter={checkSetter}
                 />
             </Stack>
         </form>
-    );
-}
-
-function DropdownMenu(
-    props: {
-        apiStatus: number,      // We want to know whether our API is still loading branchnames.
-        branchlist: string[],
-        errState: number,
-        // We need this if we type after getting an error that we tried to submit an empty form.
-        errSetter: (n: number) => void,
-    })
-{
-    let errcheck = (props.errState === ERRSTATE_BADVAL || props.errState === ERRSTATE_EMPTYVAL);
-    // These values are determined by the status of the API.
-    let placeholdertxt;
-    let disableStatus;
-    if (props.apiStatus === API_LOADING) {
-        placeholdertxt = "Loading...";
-        disableStatus = true;
-    } else {
-        placeholdertxt = "Search for a branch...";
-        disableStatus = false;
-    }
-
-    // These values are determined by whether or not we just tried to submit bad values.
-    let errtxt;
-    if (props.errState === ERRSTATE_BADVAL)
-        errtxt = "No such branch found. Please try again.";
-    else if (props.errState === ERRSTATE_EMPTYVAL)
-        errtxt = "Please submit a value.";
-    else errtxt = "";
-    return (
-        <FormControl error={errcheck} disabled={disableStatus} sx={{ width: "stretch" }}>
-            <FormLabel>Branch name</FormLabel>
-            <Autocomplete
-                name="branchInput"
-                freeSolo={true}
-                options={props.branchlist}
-                placeholder={placeholdertxt}
-                type="search"
-            />
-            <FormHelperText>{errtxt}</FormHelperText>
-        </FormControl>
-    );
-}
-
-function NumField(
-    props: {
-        apiStatus: number,      // We want to know whether our API is still loading branchnames.
-        errState: number,
-        errSetter: (n: number) => void,
-    })
-{
-    let errcheck = (props.errState === ERRSTATE_BADVAL || props.errState === ERRSTATE_EMPTYVAL);
-    // These values are determined by the status of the API.
-    let placeholdertxt;
-    let disableStatus;
-    if (props.apiStatus === API_LOADING) {
-        placeholdertxt = "Loading...";
-        disableStatus = true;
-    } else {
-        placeholdertxt = "Enter value...";
-        disableStatus = false;
-    }
-
-    // These values are determined by whether or not we just tried to submit bad values.
-    let errtxt;
-    if (props.errState === ERRSTATE_BADVAL)
-        errtxt = "No such branch found. Please try again.";
-    else if (props.errState === ERRSTATE_EMPTYVAL)
-        errtxt = "Please submit a value.";
-    else errtxt = "";
-    return (
-        <FormControl error={errcheck} disabled={disableStatus} sx={{ width: 1/4 }}>
-            <FormLabel>Number of sellers</FormLabel>
-            <Input
-                placeholder={placeholdertxt}
-                name="numInput"
-            />
-            <FormHelperText>{errtxt}</FormHelperText>
-        </FormControl>
     );
 }

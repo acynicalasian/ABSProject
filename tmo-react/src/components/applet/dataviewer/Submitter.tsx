@@ -1,10 +1,8 @@
 /** @jsxImportSource @emotion/react */
 import CheckBoxRoundedIcon from '@mui/icons-material/CheckBoxRounded';
 import CheckBoxOutlineBlankRoundedIcon from '@mui/icons-material/CheckBoxOutlineBlankRounded';
-import { ButtonGroup, Button, List, Checkbox, FormControl, FormLabel } from '@mui/joy';
-import { API_LOADING, API_IDLING } from './DataViewer';
-import { useState } from 'react';
-import { css } from '@emotion/react';
+import { ButtonGroup, Button, FormControl, FormLabel } from '@mui/joy';
+import { API_LOADING, API_IDLING, API_REFRESHING } from './DataViewer';
 
 const CHECKBOXBLANK = <CheckBoxOutlineBlankRoundedIcon/>;
 const CHECKBOXFILLED = <CheckBoxRoundedIcon/>;
@@ -12,17 +10,16 @@ const CHECKBOXFILLED = <CheckBoxRoundedIcon/>;
 export default function Submitter(
     props:
     {
-        // We control the query through handling the submission. We don't need to pass any handlers
-        // or props here.
         apiStatus: number,
+        checked: boolean,
+        checkSetter: (b: boolean) => void,
     })
 {
-    const [checked, setChecked] = useState(false);
     const handleClick = () => {
-        setChecked(b => !b);
+        props.checkSetter(!props.checked);
     };
-    let checkbox = (checked) ? CHECKBOXFILLED : CHECKBOXBLANK;
-    if (props.apiStatus === API_LOADING) {
+    let checkbox = (props.checked) ? CHECKBOXFILLED : CHECKBOXBLANK;
+    if (props.apiStatus === API_LOADING || props.apiStatus === API_REFRESHING) {
         return (
             <FormControl sx={{ width: 1/4 }}>
                 <ButtonGroup
