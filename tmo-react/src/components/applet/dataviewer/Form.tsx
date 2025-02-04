@@ -1,11 +1,11 @@
 /** @jsxImportSource @emotion/react */
 import React from 'react';
 import { useState } from 'react';
-import { API_IDLING, API_REFRESHING, API_LOADING } from "./DataViewer";
+import { API_IDLING, API_REFRESHING, API_LOADING, TABLESTATE_SHOWDATA } from "./DataViewer";
 import { css } from '@emotion/react';
-import { Stack, FormControl, FormLabel, FormHelperText, Input } from '@mui/joy';
+import { Stack } from '@mui/joy';
 import Submitter from './Submitter';
-import { TEMPLATE_SELLERDATA, API_URL_SELLERDATA_PREFIX, API_URL_GETBRANCHES } from './DataViewer';
+import { API_URL_SELLERDATA_PREFIX, API_URL_GETBRANCHES } from './DataViewer';
 import DropdownMenu from './DropdownMenu';
 import NumField from './NumField';
 export const ERRSTATE_OK = 0;
@@ -24,7 +24,8 @@ export default function Form(
         branchlist: string[],
         branchSetter: (arr: string[]) => void,     // Set branchlist if we refresh database.
         numSetter: (i: number) => void,     // Set the number of top sellers to show in the viewer.
-        sellerDataSetter: (obj: typeof TEMPLATE_SELLERDATA) => void,
+        sellerDataSetter: (obj: object) => void,
+        tableStatusSetter: (s: number) => void,
     })
 {
     // Store error states of each text entry field here. We need to declare it here so we can set
@@ -53,28 +54,22 @@ export default function Form(
         setErrStateNum(ERRSTATE_OK);
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        // Prevent the page from reloading.
-        e.preventDefault();
-        // Validate input from text field.
-        const target = e.target as typeof e.target & {
-            branchInput: { value: string };
-            numInput: { value: string };
-        };
-        const branchStr = target.branchInput.value;
-        const numStr = target.numInput.value;
+    const handleSubmit = (f: FormData) => {
+
+        let branchStr = f.get("branchInput") as string;
+        let numStr = f.get("numInput") as string;
         const parsedNumStr = Number.parseInt(numStr);
 
         // This error checking might become redunant after I tweak the number field, but more error
         // checking can't hurt us...
         let exitEarly = false;
         // If branchStr is empty or numStr is non-integral and/or less than 1, we can stop early.
-        if (branchStr == "") { // Not sure if JS does some implicit comparison bs with "" and null
+        if (branchStr === "") { // Not sure if JS does some implicit comparison bs with "" and null
             setErrStateBranch(ERRSTATE_EMPTYVAL);
             exitEarly = true;
         }
         // numStr can't be both negative or a bad value.
-        if (numStr == "" || errStateNum === ERRSTATE_EMPTYONLOAD) {
+        if (numStr === "" || errStateNum === ERRSTATE_EMPTYONLOAD) {
             setErrStateNum(ERRSTATE_EMPTYVAL);
             exitEarly = true;
         }
@@ -122,7 +117,7 @@ export default function Form(
         // casts... it could cause issues with the backend.
         let formattedNumStr = Number.parseInt(parsedNumStr.toFixed(0));
         const fetchSellerData = async function (): Promise<void> {
-            let url = `${API_URL_SELLERDATA_PREFIX}/${branchStr}/${formattedNumStr}`;
+            let url = encodeURI(`${API_URL_SELLERDATA_PREFIX}/${branchStr}/${formattedNumStr}`);
             props.apiSetter(API_REFRESHING);
             const res = await fetch(url, {method: "GET"});
             const contentType = res.headers.get("content-type");
@@ -131,20 +126,23 @@ export default function Form(
                 throw new TypeError("uh-oh!")
             // More temporary bork.
             if (!res.ok) throw new Error("Our backend failed!");
-            const obj = await res.json();
+            const objtext = await res.text();
+            var obj = JSON.parse(objtext);
 
-            // Does changing these values here ensure that the fields are rerendered with the new
-            // values?
-            target.numInput.value = "";
-            target.branchInput.value = "";
-
+            // Add the branchname as a property for later use.
+            obj.branchname = branchStr;
+            props.numSetter(formattedNumStr);
             props.sellerDataSetter(obj);
             props.apiSetter(API_IDLING);
+            props.tableStatusSetter(TABLESTATE_SHOWDATA);
         };
         fetchSellerData();
+        // I don't know why we're not resetting the input field using React's new behavior. Let's
+        // try this???
+        f.set("branchInput", "");
     }
     return (
-        <form onSubmit={handleSubmit} css={css`width: stretch;`}>
+        <form action={handleSubmit} css={css`width: stretch;`}>
             <Stack
                 direction="row"
                 spacing={2}

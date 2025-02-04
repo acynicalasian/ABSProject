@@ -31,7 +31,7 @@ export default function Submitter(
                     disabled={true}
                     variant="solid"
                 >
-                    <Button sx={{ width: 3/8 }}>Query</Button>
+                    <Button type="submit" sx={{ width: 3/8 }}>Query</Button>
                     <Button
                         startDecorator={CHECKBOXBLANK}
                         sx={{ width: 5/8 }}

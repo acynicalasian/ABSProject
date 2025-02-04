@@ -12,22 +12,15 @@ export const API_REFRESHING = 2;
 
 // Set these values differently from the API states above so they'll never unintentionally compare
 // as equal. Probably could use an enum but I'm busy enough as it is just trying to learn Joy UI.
-export const TABLESTATE_NOSELECTION = 3;
-export const TABLESTATE_NODATA = 4;
-export const TABLESTATE_SHOWDATA = 5;
+export const TABLESTATE_NOQUERY = 3;
+export const TABLESTATE_SHOWDATA = 4;
 
 const EMPTYSTRINGARR: string[] = [];
-let MONTHLYTEMPLATE = { ranking: EMPTYSTRINGARR, sellertotal: EMPTYSTRINGARR };
-export const TEMPLATE_SELLERDATA = {
-    Jan: MONTHLYTEMPLATE, Feb: MONTHLYTEMPLATE, Mar: MONTHLYTEMPLATE, Apr: MONTHLYTEMPLATE,
-    May: MONTHLYTEMPLATE, Jun: MONTHLYTEMPLATE, Jul: MONTHLYTEMPLATE, Aug: MONTHLYTEMPLATE,
-    Sep: MONTHLYTEMPLATE, Oct: MONTHLYTEMPLATE, Nov: MONTHLYTEMPLATE, Dec: MONTHLYTEMPLATE,
-};
 
 // This probably needs to be changed depending on dev environment, actual deployment, etc.
 const API_URL_PREFIX = "http://localhost:5139/PerformanceReport";
 export const API_URL_GETBRANCHES = "/PerformanceReport/GetBranches";
-export const API_URL_SELLERDATA_PREFIX = "/PerformanceReport/GetTopSellers/"
+export const API_URL_SELLERDATA_PREFIX = "/PerformanceReport/GetTopSellers"
 
 export default function DataViewer() {
     // Manage apiStatus state here because we need to rerender pretty much all our child
@@ -58,14 +51,19 @@ export default function DataViewer() {
 
     // We need to synchronize the list of top sellers because we use the submit button to query the
     // database as needed.
-    const [sellerData, setSellerData] = useState(TEMPLATE_SELLERDATA);
-    const sellerDataSetter = (obj: typeof TEMPLATE_SELLERDATA) => {
+    const [sellerData, setSellerData] = useState({});
+    const sellerDataSetter = (obj: object) => {
         setSellerData(obj);
+        // Getting seller data implies we can set the table state to show the table.
+        setTableState(TABLESTATE_SHOWDATA);
     };
 
     // We need this to controll the state of the table... we don't want to display anything when we
-    // haven't chosen a branch yet.
-    const [tableState, setTableState] = useState(TABLESTATE_NOSELECTION);
+    // haven't chosen a branch yet. Make this dependent on submission from Form.
+    const [tableState, setTableState] = useState(TABLESTATE_NOQUERY);
+    const tableStatusSetter = (s: number) => {
+        setTableState(s);
+    };
 
     // This forces all child nodes to be rerendered, but we need this parent component to control
     // what we see for the dropdown menu (so we don't see an empty list when branches aren't 
@@ -91,6 +89,7 @@ export default function DataViewer() {
                 {
                     setBranchList(obj["list"]);
                     setApiStatus(API_IDLING);
+                    setTableState(TABLESTATE_NOQUERY);
                 }
             };
             fetchBranches();
@@ -108,11 +107,13 @@ export default function DataViewer() {
                 branchSetter={branchSetter}
                 numSetter={numSetter}
                 sellerDataSetter={sellerDataSetter}
+                tableStatusSetter={tableStatusSetter}
             />
             <DisplayData
                 apiStatus={apiStatus}
                 tableState={tableState}
                 sellerData={sellerData}
+                numSellers={numSellers}
             />
         </>
     );

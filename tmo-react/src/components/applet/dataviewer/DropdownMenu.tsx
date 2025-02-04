@@ -23,7 +23,7 @@ export default function DropdownMenu(
         placeholdertxt = "Loading...";
         disableStatus = true;
     } else {
-        placeholdertxt = "Click to select or enter a branch...";
+        placeholdertxt = "Click or type a new branch to query...";
         disableStatus = false;
     }
 
