@@ -23,7 +23,7 @@ export default function DropdownMenu(
         placeholdertxt = "Loading...";
         disableStatus = true;
     } else {
-        placeholdertxt = "Search for a branch...";
+        placeholdertxt = "Click to select or enter a branch...";
         disableStatus = false;
     }
 
@@ -39,10 +39,11 @@ export default function DropdownMenu(
             <FormLabel>Branch name</FormLabel>
             <Autocomplete
                 name="branchInput"
-                freeSolo={true}
+                freeSolo
                 options={props.branchlist}
                 placeholder={placeholdertxt}
-                type="search"
+                selectOnFocus
+                handleHomeEndKeys
                 onChange={props.changeFn}
             />
             <FormHelperText>{errtxt}</FormHelperText>

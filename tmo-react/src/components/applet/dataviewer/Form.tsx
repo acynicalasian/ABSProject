@@ -41,8 +41,8 @@ export default function Form(
     // Store the state of the checkbox asking whether we want to refresh our query (not read 
     // cached values. We need to store state here so handleSubmit can tinker with it as needed.
     const [checked, setChecked] = useState(false);
-    const checkSetter = (b: boolean) => {
-        setChecked(b);
+    const checkSetter = () => {
+        setChecked(b => !b);
     };
 
     // Clear error state if we modify an input field.
@@ -104,8 +104,9 @@ export default function Form(
                 updatedBranchList = obj["list"];
                 props.branchSetter(obj["list"]);
                 props.apiSetter(API_IDLING);
-                setChecked(b => !b);
+                setChecked(false);
             };
+            fetchBranches();
         }
 
         exitEarly = true;
@@ -121,7 +122,6 @@ export default function Form(
         // casts... it could cause issues with the backend.
         let formattedNumStr = Number.parseInt(parsedNumStr.toFixed(0));
         const fetchSellerData = async function (): Promise<void> {
-
             let url = `${API_URL_SELLERDATA_PREFIX}/${branchStr}/${formattedNumStr}`;
             props.apiSetter(API_REFRESHING);
             const res = await fetch(url, {method: "GET"});
@@ -132,11 +132,17 @@ export default function Form(
             // More temporary bork.
             if (!res.ok) throw new Error("Our backend failed!");
             const obj = await res.json();
+
+            // Does changing these values here ensure that the fields are rerendered with the new
+            // values?
+            target.numInput.value = "";
+            target.branchInput.value = "";
+
             props.sellerDataSetter(obj);
             props.apiSetter(API_IDLING);
         };
         fetchSellerData();
-    };
+    }
     return (
         <form onSubmit={handleSubmit} css={css`width: stretch;`}>
             <Stack

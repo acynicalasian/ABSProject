@@ -10,6 +10,12 @@ export const API_IDLING = 1;
 // submission in our Form while still letting us show the "Loading..." style of our components.
 export const API_REFRESHING = 2;
 
+// Set these values differently from the API states above so they'll never unintentionally compare
+// as equal. Probably could use an enum but I'm busy enough as it is just trying to learn Joy UI.
+export const TABLESTATE_NOSELECTION = 3;
+export const TABLESTATE_NODATA = 4;
+export const TABLESTATE_SHOWDATA = 5;
+
 const EMPTYSTRINGARR: string[] = [];
 let MONTHLYTEMPLATE = { ranking: EMPTYSTRINGARR, sellertotal: EMPTYSTRINGARR };
 export const TEMPLATE_SELLERDATA = {
@@ -57,6 +63,10 @@ export default function DataViewer() {
         setSellerData(obj);
     };
 
+    // We need this to controll the state of the table... we don't want to display anything when we
+    // haven't chosen a branch yet.
+    const [tableState, setTableState] = useState(TABLESTATE_NOSELECTION);
+
     // This forces all child nodes to be rerendered, but we need this parent component to control
     // what we see for the dropdown menu (so we don't see an empty list when branches aren't 
     // loaded yet) and the query button (we'll gray it out when we're reloading the data)
@@ -99,8 +109,11 @@ export default function DataViewer() {
                 numSetter={numSetter}
                 sellerDataSetter={sellerDataSetter}
             />
-            {/*<WindowedViewer/>*/}
-            <></>
+            <DisplayData
+                apiStatus={apiStatus}
+                tableState={tableState}
+                sellerData={sellerData}
+            />
         </>
     );
 }

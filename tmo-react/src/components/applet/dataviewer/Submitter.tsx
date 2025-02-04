@@ -13,13 +13,13 @@ export default function Submitter(
     {
         apiStatus: number,
         checked: boolean,
-        checkSetter: (b: boolean) => void,
+        checkSetter: () => void,
         // We need this to fix formatting issues with the button when errors occur.
         errState: number,
     })
 {
     const handleClick = () => {
-        props.checkSetter(!props.checked);
+        props.checkSetter();
     };
     let checkbox = (props.checked) ? CHECKBOXFILLED : CHECKBOXBLANK;
     if (props.apiStatus === API_LOADING || props.apiStatus === API_REFRESHING) {
@@ -39,6 +39,8 @@ export default function Submitter(
                         Refresh?
                     </Button>
                 </ButtonGroup>
+                <FormHelperText sx={{ visibility: "hidden" }}>foo</FormHelperText>
+                <FormHelperText sx={{ visibility: "hidden" }}>foo</FormHelperText>
             </FormControl>
         );
     }
@@ -60,6 +62,8 @@ export default function Submitter(
                         Refresh?
                     </Button>
                 </ButtonGroup>
+                <FormHelperText sx={{ visibility: "hidden" }}>foo</FormHelperText>
+                <FormHelperText sx={{ visibility: "hidden" }}>foo</FormHelperText>
             </FormControl>
         );
     }
